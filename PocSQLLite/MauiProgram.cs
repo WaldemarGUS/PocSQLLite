@@ -15,6 +15,9 @@ namespace PocSQLLite
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
+            builder.Services.AddSingleton<LocalDBService>();
+            builder.Services.AddTransient<MainPage>();
+
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
