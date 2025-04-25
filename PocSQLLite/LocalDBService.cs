@@ -1,8 +1,9 @@
 ﻿using SQLite;
+using System.Threading.Tasks;
 
 namespace PocSQLLite
 {
-    internal class LocalDBService
+    public class LocalDBService
     {
         private const string DB_NAME = "demo_local_db.db3";
         private readonly SQLiteAsyncConnection _connection;
@@ -32,6 +33,11 @@ namespace PocSQLLite
         public async Task Delete(Customer customer)
         {
             await _connection.DeleteAsync(customer);
+        }
+
+        public async Task<List<Customer>> getcustomers()
+        {
+            return await _connection.Table<Customer>().ToListAsync();
         }
 
     }

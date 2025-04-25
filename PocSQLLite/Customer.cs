@@ -4,7 +4,7 @@ namespace PocSQLLite
 {
     [Table("customer")]
     
-    internal class Customer
+    public class Customer
     {
         [PrimaryKey]
         [AutoIncrement]
