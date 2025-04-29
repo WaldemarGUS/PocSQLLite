@@ -6,17 +6,24 @@
 
 using Sqo.Attributes;
 using System.Reflection;
+using SQLite;
 
 namespace SiaqodbSyncProvider {
     [Obfuscation(Exclude = true)]
-  internal class DirtyEntity
-  {
-    public int EntityOID;
-    [MaxLength(200)]
-    public string EntityType;
-    public DirtyOperation DirtyOp;
-    public byte[] TombstoneObj;
+    public class DirtyEntity
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        
+        [SQLite.MaxLength(200)]
+        public string EntityType { get; set; }
+        
+        public int EntityOID { get; set; }
+        
+        public DirtyOperation DirtyOp { get; set; }
+        
+        public byte[] TombstoneObj { get; set; }
 
-    public int OID { get; set; }
-  }
+        public int OID { get; set; }
+    }
 }

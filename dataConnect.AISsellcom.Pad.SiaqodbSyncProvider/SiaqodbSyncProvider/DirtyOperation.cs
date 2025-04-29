@@ -8,10 +8,10 @@ using System.Reflection;
 
 namespace SiaqodbSyncProvider {
     [Obfuscation(Exclude = true)]
-  internal enum DirtyOperation
-  {
-    Inserted = 1,
-    Updated = 2,
-    Deleted = 3,
-  }
+    public enum DirtyOperation
+    {
+        Inserted,
+        Updated,
+        Deleted
+    }
 }
