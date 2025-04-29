@@ -13,13 +13,6 @@ namespace PocSQLLite
         public LocalDBService()
         {
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, DB_NAME);
-            
-            // Delete existing database if it exists
-            if (File.Exists(dbPath))
-            {
-                File.Delete(dbPath);
-            }
-            
             _sqlite = new SQLiteOffline(dbPath);
             _syncProvider = new SQLiteOfflineSyncProvider(_sqlite, new Uri("http://localhost"));
         }
@@ -36,6 +29,7 @@ namespace PocSQLLite
 
         public async Task Create(SiaqodbSyncProvider.Customer customer)
         {
+            customer.Id = 0; // Ensure new record
             await _sqlite.StoreObject(customer);
             await _syncProvider.BeginSession();
             try
@@ -50,6 +44,10 @@ namespace PocSQLLite
 
         public async Task Update(SiaqodbSyncProvider.Customer customer)
         {
+            if (customer.Id == 0)
+            {
+                throw new ArgumentException("Cannot update a customer with Id 0");
+            }
             await _sqlite.StoreObject(customer);
             await _syncProvider.BeginSession();
             try
