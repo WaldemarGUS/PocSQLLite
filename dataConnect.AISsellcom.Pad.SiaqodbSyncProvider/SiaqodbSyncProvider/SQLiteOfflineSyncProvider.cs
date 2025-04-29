@@ -195,9 +195,8 @@ namespace SiaqodbSyncProvider
         }
     }
 
-    public class SQLiteOfflineEntity : IOfflineEntity
+    public class SQLiteOfflineEntity : BaseEntity, IOfflineEntity
     {
-        public int OID { get; set; }
         public bool IsDirty { get; set; }
         public bool IsTombstone { get; set; }
         public DateTime LastModified { get; set; }

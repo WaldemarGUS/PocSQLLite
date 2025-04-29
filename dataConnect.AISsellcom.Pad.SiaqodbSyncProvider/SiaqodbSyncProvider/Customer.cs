@@ -1,6 +1,6 @@
-﻿using SQLite;
+using SQLite;
 
-namespace PocSQLLite
+namespace SiaqodbSyncProvider
 {
     [Table("customer")]
     public class Customer : BaseEntity
@@ -11,4 +11,4 @@ namespace PocSQLLite
         public string Mobile { get; set; }
         public string Email { get; set; }
     }
-}
+} 

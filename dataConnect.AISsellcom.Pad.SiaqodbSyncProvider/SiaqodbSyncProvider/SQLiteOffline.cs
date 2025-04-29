@@ -24,24 +24,25 @@ namespace SiaqodbSyncProvider
             // Create tables for sync metadata
             await _connection.CreateTableAsync<SyncMetadata>();
             await _connection.CreateTableAsync<DirtyEntity>();
+            await _connection.CreateTableAsync<Customer>();
         }
 
-        public async Task<T> LoadObjectByOID<T>(int oid) where T : new()
+        public async Task<T> LoadObjectByOID<T>(int oid) where T : BaseEntity, new()
         {
-            return await _connection.Table<T>().Where(x => ((ISqoDataObject)x).OID == oid).FirstOrDefaultAsync();
+            return await _connection.Table<T>().Where(x => x.OID == oid).FirstOrDefaultAsync();
         }
 
-        public async Task<List<T>> LoadAll<T>() where T : new()
+        public async Task<List<T>> LoadAll<T>() where T : BaseEntity, new()
         {
             return await _connection.Table<T>().ToListAsync();
         }
 
-        public async Task StoreObject<T>(T obj)
+        public async Task StoreObject<T>(T obj) where T : BaseEntity
         {
             await _connection.InsertOrReplaceAsync(obj);
         }
 
-        public async Task DeleteObject<T>(T obj)
+        public async Task DeleteObject<T>(T obj) where T : BaseEntity
         {
             await _connection.DeleteAsync(obj);
         }

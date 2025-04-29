@@ -1,8 +1,10 @@
-﻿namespace PocSQLLite
+﻿using SiaqodbSyncProvider;
+
+namespace PocSQLLite
 {
     public partial class MainPage : ContentPage
     {
-        private readonly LocalDBService _dbService ;
+        private readonly LocalDBService _dbService;
         private int _editCustomerId;
 
         public MainPage(LocalDBService dBService)
@@ -16,17 +18,17 @@
         {
             if (_editCustomerId == 0){
                 // Add Customer
-                await _dbService.Create(new Customer{
-                    CustomerName = nameEntryField.Text,
+                await _dbService.Create(new SiaqodbSyncProvider.Customer{
+                    Name = nameEntryField.Text,
                     Email = emailEntryField.Text,
                     Mobile = mobileEntryField.Text
                 });
             }
             else{
                 // Update Customer
-                await _dbService.Update(new Customer{
+                await _dbService.Update(new SiaqodbSyncProvider.Customer{
                     Id = _editCustomerId,
-                    CustomerName = nameEntryField.Text,
+                    Name = nameEntryField.Text,
                     Email = emailEntryField.Text,
                     Mobile = mobileEntryField.Text
                 });
@@ -43,13 +45,13 @@
 
         private async void listView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            var customer = (Customer)e.Item;
+            var customer = (SiaqodbSyncProvider.Customer)e.Item;
             var action = await DisplayActionSheet("Select Action", "Cancel", null, "Edit", "Delete");
 
             switch (action){
                 case "Edit":
                     _editCustomerId = customer.Id;
-                    nameEntryField.Text = customer.CustomerName;
+                    nameEntryField.Text = customer.Name;
                     emailEntryField.Text = customer.Email;
                     mobileEntryField.Text = customer.Mobile;
                     break;
@@ -60,5 +62,4 @@
             }
         }
     }
-
 }
