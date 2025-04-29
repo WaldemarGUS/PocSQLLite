@@ -1,0 +1,213 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>SiaqodbPortable</name>
+    </assembly>
+    <members>
+        <member name="T:Sqo.Attributes.DocumentAttribute">
+            <summary>
+            Make property to be stored as a Document-a snapshot of current object.
+            </summary>
+        </member>
+        <member name="T:Sqo.Attributes.IgnoreAttribute">
+            <summary>
+            Attribute to be used for a member of a storable class and that object will be ignored by siaqodb engine
+            </summary>
+        </member>
+        <member name="T:Sqo.Attributes.LazyLoadAttribute">
+            <summary>
+            The property/field will not be loaded by default, it will be loaded by using Include(...) method
+            </summary>
+        </member>
+        <member name="T:Sqo.Attributes.MaxLengthAttribute">
+            <summary>
+            Attribute to be used for a member of type String of a storable class to limit Length of a string object to be stored in database 
+            </summary>
+        </member>
+        <member name="M:Sqo.Attributes.MaxLengthAttribute.#ctor(System.Int32)">
+            <summary>
+            Create an attribute instance of Type MaxLength
+            </summary>
+            <param name="maxLength">number of characters from string to be stored in database</param>
+        </member>
+        <member name="T:Sqo.Attributes.UseVariableAttribute">
+            <summary>
+            Use this attribute if you use a Property and inside that
+            property use some complex code and when Siaqodb engine is not able 
+            to get what is backing field of that Property, variableName is used for Siaqodb engine when that property is used
+            
+            </summary>
+        </member>
+        <member name="M:Sqo.Configurator.AddIndex(System.String,System.Type)">
+            <summary>
+            Add an index for a field or automatic property of a certain Type,an Index can be added also by using Attribute: Sqo.Attributes.Index;
+            both ways of adding index are similar
+            </summary>
+            <param name="field">Field name or automatic property name</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.AddUniqueConstraint(System.String,System.Type)">
+            <summary>
+            Add an UniqueConstraint for a field of a certain Type,an UniqueConstraint can be added also by using Attribute: Sqo.Attributes.UniqueConstraint;
+            both ways of adding UniqueConstraint are similar
+            </summary>
+            <param name="field">Field name or automatic property name</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.AddMaxLength(System.String,System.Int32,System.Type)">
+            <summary>
+            Put MaxLength for a string field or automatic property of a Type, MaxLength can be set also by using Attribute: Sqo.Attributes.MaxLength
+            </summary>
+            <param name="field">Field name or automatic property name</param>
+            <param name="maxLength">max length for a string</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.AddIgnore(System.String,System.Type)">
+            <summary>
+            Ignore a field or automatic property to be stored
+            </summary>
+            <param name="field">Name of field or automatic property</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.AddText(System.String,System.Type)">
+            <summary>
+            Mark field to be stored as a string with unlimited length 
+            </summary>
+            <param name="field">Name of field or automatic property</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.AddDocument(System.String,System.Type)">
+            <summary>
+            Mark a field or automatic property of a certain Type to be serialized as a Document ,it can be added also by using Attribute: Sqo.Attributes.Document;
+            both ways of set as Document are similar
+            </summary>
+            <param name="field">Field name or automatic property name</param>
+            <param name="type">Type that declare the field</param>
+        </member>
+        <member name="M:Sqo.Configurator.PropertyUseField(System.String,System.String,System.Type)">
+            <summary>
+            Set the name of backing field for a property in case engine cannto discover it, this also can be set by attribute: Sqo.Attributes.UseVariable
+            </summary>
+            <param name="propertyName">Name of property</param>
+            <param name="fieldName">Name of backing field of property</param>
+            <param name="type"></param>
+        </member>
+        <member name="P:Sqo.Configurator.EncryptedDatabase">
+            <summary>
+            Set if database will be encrypted or not
+            </summary>
+        </member>
+        <member name="M:Sqo.Configurator.SetEncryptionPassword(System.String)">
+            <summary>
+            Set the password for encryption algorithm used to encrypt database data
+            </summary>
+            <param name="pwd">The password</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetEncryptor(Sqo.Encryption.IEncryptor)">
+            <summary>
+            Set your custom encryption algorithm that implemets IEncryptor interface
+            </summary>
+            <param name="encryptor">The instance of custom encryption algorithm</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetEncryptor(Sqo.BuildInAlgorithm)">
+            <summary>
+            Set build-in encryption algorithm 
+            </summary>
+            <param name="alg">Encryption algorithm</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetDatabaseFileName``1(System.String)">
+            <summary>
+            Set custom fileName on disk of database file for Type T
+            </summary>
+            <typeparam name="T">Type of objects</typeparam>
+            <param name="fileName">Name of database file on disk</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetDatabaseFileName(System.Type,System.String)">
+            <summary>
+            Set custom fileName on disk of database file for Type 
+            </summary>
+            <param name="type">Type of objects</param>
+            <param name="fileName">Name of database file on disk</param>
+        </member>
+        <member name="M:Sqo.Configurator.LoadRelatedObjects``1(System.Boolean)">
+            <summary>
+            By default this is true for all types. Set this to false to not load childs entities of objects of Type provided
+            </summary>
+            <typeparam name="T">Type for objects</typeparam>
+            <param name="loadRelatedObjects">true if related object need to be loaded, false if you want to load by Include(...) method</param>
+        </member>
+        <member name="M:Sqo.Configurator.LoadRelatedObjects(System.Type,System.Boolean)">
+            <summary>
+            By default this is true for all types. Set this to false to not load childs entities of objects of Type provided
+            </summary>
+            <param name="type">Type for objects</param>
+            <param name="loadRelatedObjects">true if related object need to be loaded, false if you want to load by Include(...) method</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetLicense(System.String)">
+            <summary>
+            Set the license key
+            </summary>
+            <param name="licenseKey">License key</param>
+        </member>
+        <member name="M:Sqo.Configurator.SetRaiseLoadEvents(System.Boolean)">
+            <summary>
+            Set true to raise Loading/Loaded events
+            </summary>
+            <param name="raiseLoadEvents"></param>
+        </member>
+        <member name="M:Sqo.Configurator.SetDocumentSerializer(Sqo.IDocumentSerializer)">
+            <summary>
+            Set your custom document serializer
+            </summary>
+            <param name="documentSerializer">The instance of custom document serializer</param>
+        </member>
+        <member name="P:Sqo.Configurator.AutoGrowthThresholdPercent">
+            <summary>
+            Get or set the Threshold percent when DB automatically increase the size of database when it is opened.
+            Database is increased with AutoGrowthSize amount of bytes.
+            Default Threshold is 80%
+            </summary>
+        </member>
+        <member name="P:Sqo.Configurator.AutoGrowthSize">
+            <summary>
+            Get or set automatic growth size of database(default is 5 MB).
+            </summary>
+        </member>
+        <member name="T:Sqo.IObjectList`1">
+            <summary>
+            Main interface to be used by implementers to retrieve objects from database
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="T:Sqo.MetaField">
+            <summary>
+            Class that describe a field of an object stored in database
+            </summary>
+        </member>
+        <member name="P:Sqo.MetaField.Name">
+            <summary>
+            Name of field stored in database
+            </summary>
+        </member>
+        <member name="P:Sqo.MetaField.FieldType">
+            <summary>
+            Type of field stored in database
+            </summary>
+        </member>
+        <member name="T:Sqo.MetaType">
+            <summary>
+            Class that describe Type of objects  stored in database
+            </summary>
+        </member>
+        <member name="P:Sqo.MetaType.Name">
+            <summary>
+            Name of Type stored in database
+            </summary>
+        </member>
+        <member name="P:Sqo.MetaType.Fields">
+            <summary>
+            List of fields
+            </summary>
+        </member>
+    </members>
+</doc>
