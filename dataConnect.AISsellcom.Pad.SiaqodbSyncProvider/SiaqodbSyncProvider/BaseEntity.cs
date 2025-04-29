@@ -5,10 +5,9 @@ namespace SiaqodbSyncProvider
 {
     public abstract class BaseEntity : ISqoDataObject
     {
-        [PrimaryKey, AutoIncrement]
-        public int Id { get; set; }
+        public virtual int OID { get; set; }
 
         // ISqoDataObject implementation
-        public int OID { get => Id; set => Id = value; }
+        public int Id { get => OID; set => OID = value; }
     }
 } 
