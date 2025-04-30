@@ -51,7 +51,6 @@ namespace SiaqodbSyncProvider
 
         private async void InitializeDatabase()
         {
-            await _connection.CreateTableAsync<SyncMetadata>();
             await _connection.CreateTableAsync<DirtyEntity>();
             await _connection.CreateTableAsync<Hp>();
         }
@@ -182,6 +181,36 @@ namespace SiaqodbSyncProvider
             if (obj is ISqoDataObject sqoObj)
                 return sqoObj.OID;
             return 0;
+        }
+
+        public void SaveAnchor(byte[] anchor, string scopeName)
+        {
+            if (anchor == null) return;
+            var anchorKey = $"anchor_{scopeName}";
+            File.WriteAllBytes(Path.Combine(Path.GetDirectoryName(_dbPath), anchorKey), anchor);
+        }
+
+        public bool DropAnchor(string scopeName)
+        {
+            var anchorKey = $"anchor_{scopeName}";
+            var anchorPath = Path.Combine(Path.GetDirectoryName(_dbPath), anchorKey);
+            if (File.Exists(anchorPath))
+            {
+                File.Delete(anchorPath);
+                return true;
+            }
+            return false;
+        }
+
+        public byte[] GetServerBlob(string scopeName)
+        {
+            var anchorKey = $"anchor_{scopeName}";
+            var anchorPath = Path.Combine(Path.GetDirectoryName(_dbPath), anchorKey);
+            if (File.Exists(anchorPath))
+            {
+                return File.ReadAllBytes(anchorPath);
+            }
+            return null;
         }
     }
 
