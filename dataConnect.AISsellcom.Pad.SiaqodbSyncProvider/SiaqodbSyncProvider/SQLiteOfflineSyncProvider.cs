@@ -186,12 +186,4 @@ namespace SiaqodbSyncProvider
             this.SyncProgress?.Invoke(this, args);
         }
     }
-
-    public class SQLiteOfflineEntity : BaseEntity, IOfflineEntity
-    {
-        public bool IsDirty { get; set; }
-        public bool IsTombstone { get; set; }
-        public DateTime LastModified { get; set; }
-        public OfflineEntityMetadata ServiceMetadata { get; set; } = new OfflineEntityMetadata();
-    }
 } 
