@@ -1,4 +1,5 @@
 using SQLite;
+using Microsoft.Synchronization.ClientServices;
 
 namespace SiaqodbSyncProvider
 {
@@ -17,6 +18,9 @@ namespace SiaqodbSyncProvider
 
         [Column("name")]
         public string Name { get; set; }
+
+        [Ignore]
+        public override OfflineEntityMetadata ServiceMetadata { get; set; }
     }
 } 
 

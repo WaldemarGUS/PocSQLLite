@@ -13,7 +13,8 @@ namespace PocSQLLite
         public LocalDBService()
         {
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, DB_NAME);
-            _sqlite = new SQLiteOffline(dbPath);
+            System.Diagnostics.Debug.WriteLine($"Database path: {dbPath}");
+            _sqlite = new SQLiteOffline(dbPath, new Uri("http://localhost"));
             _syncProvider = new SQLiteOfflineSyncProvider(_sqlite, new Uri("http://localhost"));
         }
 
@@ -30,7 +31,7 @@ namespace PocSQLLite
         public async Task Create(Hp hp)
         {
             await _sqlite.StoreObject(hp);
-            await _syncProvider.BeginSession();
+            _syncProvider.BeginSession();
             try
             {
                 await _syncProvider.GetChangeSet(Guid.NewGuid());
@@ -44,7 +45,7 @@ namespace PocSQLLite
         public async Task Update(Hp hp)
         {
             await _sqlite.StoreObject(hp);
-            await _syncProvider.BeginSession();
+            _syncProvider.BeginSession();
             try
             {
                 await _syncProvider.GetChangeSet(Guid.NewGuid());
@@ -57,8 +58,8 @@ namespace PocSQLLite
 
         public async Task Delete(Hp hp)
         {
-            await _sqlite.DeleteObject(hp);
-            await _syncProvider.BeginSession();
+            await _sqlite.Delete(hp);
+            _syncProvider.BeginSession();
             try
             {
                 await _syncProvider.GetChangeSet(Guid.NewGuid());

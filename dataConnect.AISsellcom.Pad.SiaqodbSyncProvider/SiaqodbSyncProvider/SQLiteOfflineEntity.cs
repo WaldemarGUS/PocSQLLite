@@ -30,7 +30,7 @@ namespace SiaqodbSyncProvider
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public OfflineEntityMetadata ServiceMetadata
+        public virtual OfflineEntityMetadata ServiceMetadata
         {
             get
             {
