@@ -9,6 +9,12 @@ using SiaqodbSyncProvider.Utilities;
 
 namespace SiaqodbSyncProvider
 {
+    public interface ITransaction : IDisposable
+    {
+        void Commit();
+        void Rollback();
+    }
+
     public class SQLiteOffline
     {
         private readonly SQLiteAsyncConnection _connection;
@@ -208,6 +214,86 @@ namespace SiaqodbSyncProvider
                 return File.ReadAllBytes(anchorPath);
             }
             return null;
+        }
+
+        public bool UpdateObjectBy(string fieldName, object obj)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        public bool UpdateObjectBy(object obj, params string[] fieldNames)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        public bool UpdateObjectBy(object obj, ITransaction transaction, params string[] fieldNames)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        internal bool UpdateObjectByBase(string fieldName, ISqoDataObject obj)
+        {
+            return UpdateObjectBy(fieldName, obj);
+        }
+
+        internal bool UpdateObjectByBase(ISqoDataObject obj, params string[] fieldNames)
+        {
+            return UpdateObjectBy(obj, fieldNames);
+        }
+
+        internal bool UpdateObjectByBase(ISqoDataObject obj, ITransaction transaction, params string[] fieldNames)
+        {
+            return UpdateObjectBy(obj, transaction, fieldNames);
+        }
+
+        public bool DeleteObjectBy(object obj, params string[] fieldNames)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        public bool DeleteObjectBy(object obj, ITransaction transaction, params string[] fieldNames)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        public bool DeleteObjectBy(string fieldName, object obj)
+        {
+            throw new NotSupportedException("This method is not supported in SQLiteOffline.");
+        }
+
+        internal bool DeleteObjectByBase(string fieldName, ISqoDataObject obj)
+        {
+            return DeleteObjectBy(fieldName, obj);
+        }
+
+        internal bool DeleteObjectByBase(ISqoDataObject obj, params string[] fieldNames)
+        {
+            return DeleteObjectBy(obj, fieldNames);
+        }
+
+        internal bool DeleteObjectByBase(ISqoDataObject obj, ITransaction transaction, params string[] fieldNames)
+        {
+            return DeleteObjectBy(obj, transaction, fieldNames);
+        }
+
+        internal void StoreObjectBase(ISqoDataObject obj)
+        {
+            StoreObject(obj).Wait();
+        }
+
+        internal void StoreObjectBase(ISqoDataObject obj, ITransaction transaction)
+        {
+            StoreObject(obj).Wait();
+        }
+
+        internal void DeleteBase(object obj)
+        {
+            Delete(obj).Wait();
+        }
+
+        internal void DeleteBase(object obj, ITransaction transaction)
+        {
+            Delete(obj).Wait();
         }
     }
 
