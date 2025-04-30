@@ -39,5 +39,6 @@
   <ItemGroup>
     <Compile Remove="SiaqodbSyncProvider\SiaqodbOffline.cs" />
     <Compile Remove="SiaqodbSyncProvider\SiaqodbOfflineSyncProvider.cs" />
+    <Compile Remove="SiaqodbSyncProvider\Utilities\ReflectionHelper.cs" />
   </ItemGroup>
 </Project>

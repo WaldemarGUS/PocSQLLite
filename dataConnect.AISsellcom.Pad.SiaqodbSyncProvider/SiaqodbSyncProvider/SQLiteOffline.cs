@@ -61,7 +61,7 @@ namespace SiaqodbSyncProvider
             {
                 EntityOID = GetOID(obj),
                 DirtyOp = dop,
-                EntityType = ReflectionHelper.GetDiscoveringTypeName(obj.GetType())
+                EntityType = obj.GetType().Name
             };
             await _connection.InsertOrReplaceAsync(dirtyEntity);
         }
