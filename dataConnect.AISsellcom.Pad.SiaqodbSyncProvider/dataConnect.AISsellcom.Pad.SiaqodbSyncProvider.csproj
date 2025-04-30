@@ -35,4 +35,9 @@
   <ItemGroup>
     <None Remove="NETStandard.Library" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="SiaqodbSyncProvider\SiaqodbOffline.cs" />
+    <Compile Remove="SiaqodbSyncProvider\SiaqodbOfflineSyncProvider.cs" />
+  </ItemGroup>
 </Project>
