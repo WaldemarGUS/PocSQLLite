@@ -33,6 +33,24 @@ namespace SiaqodbSyncProvider
 
         public bool UseElevatedTrust { get; set; }
 
+        public string ClientScopeName
+        {
+            get
+            {
+                string result = null;
+                byte[] blob = this.GetServerBlob();
+
+                if (blob != null && blob.Any())
+                {
+                    string s = Convert.ToBase64String(blob);
+                    SyncBlob syncBlob = SyncBlob.DeSerialize(blob);
+                    result = syncBlob.ClientScopeName;
+                }
+
+                return result;
+            }
+        }
+
         public override Task BeginSession()
         {
             return Task.Run(() =>
@@ -102,8 +120,7 @@ namespace SiaqodbSyncProvider
 
         public override byte[] GetServerBlob()
         {
-            // Implement server blob retrieval
-            return null;
+            return sqlite.GetServerBlob(CacheController.ControllerBehavior.ScopeName);
         }
 
         public override async Task SaveChangeSet(ChangeSet changeSet)
@@ -113,17 +130,50 @@ namespace SiaqodbSyncProvider
 
             try
             {
-                foreach (var entity in changeSet.Data)
+                this.OnSyncProgress(new SyncProgressEventArgs("Download finished, saving object on local db..."));
+                IEnumerable<SQLiteOfflineEntity> entities = changeSet.Data.Cast<SQLiteOfflineEntity>();
+
+                var groupedEntities = entities.GroupBy(x => x.GetType().FullName);
+
+                foreach (var typeToImport in groupedEntities)
                 {
-                    if (entity is SQLiteOfflineEntity sqliteEntity)
-                    {
-                        await sqlite.StoreObject(sqliteEntity);
-                    }
+                    await SaveDownloadedChanges(changeSet.ServerBlob, typeToImport.AsEnumerable());
                 }
+
+                this.OnSyncProgress(new SyncProgressEventArgs("Sync finished!"));
             }
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        private async Task SaveDownloadedChanges(byte[] anchor, IEnumerable<SQLiteOfflineEntity> entities, int level = 0, Exception lastEx = null)
+        {
+            try
+            {
+                foreach (var entity in entities)
+                {
+                    if (!entity.IsTombstone && level > 0)
+                    {
+                        entity.OID = 0;
+                    }
+
+                    await sqlite.StoreObject(entity);
+                }
+
+                sqlite.SaveAnchor(anchor, CacheController.ControllerBehavior.ScopeName);
+            }
+            catch (Exception ex)
+            {
+                if (level > 3)
+                {
+                    lastEx.Data.Add("level", level);
+                    lastEx.Data.Add("errorEntity", entities.First());
+                    throw lastEx;
+                }
+
+                await SaveDownloadedChanges(anchor, entities, level + 1, ex);
             }
         }
 
@@ -135,7 +185,7 @@ namespace SiaqodbSyncProvider
                 throw response.Error;
 
             this.OnSyncProgress(new SyncProgressEventArgs("Upload finished, marking local entities as uploaded..."));
-            
+
             try
             {
                 if (response.UpdatedItems != null && response.UpdatedItems.Count > 0)
@@ -155,7 +205,7 @@ namespace SiaqodbSyncProvider
                 {
                     var ceArgs = new ConflictsEventArgs(response.Conflicts);
                     this.OnConflictOccur(ceArgs);
-                    
+
                     if (!ceArgs.CancelResolvingConflicts)
                     {
                         foreach (var conflict in response.Conflicts)
@@ -169,6 +219,50 @@ namespace SiaqodbSyncProvider
                         }
                     }
                 }
+
+                var changesJustUploaded = this.currentChanges[state];
+                foreach (var offlineEntity in changesJustUploaded.Where(x => x != null))
+                {
+                    if (offlineEntity is SQLiteOfflineEntity en)
+                    {
+                        if (!en.IsTombstone)
+                        {
+                            en.IsDirty = false;
+                            await sqlite.StoreObject(en);
+                        }
+                    }
+                }
+
+                foreach (var dirtyEntity in this.currentDirtyItems[state])
+                {
+                    await sqlite.Delete(dirtyEntity);
+                }
+
+                sqlite.SaveAnchor(response.ServerBlob, CacheController.ControllerBehavior.ScopeName);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            this.OnSyncProgress(new SyncProgressEventArgs("Downloading changes from server..."));
+            this.currentChanges.Remove(state);
+        }
+
+        public void AddType<T>() where T : IOfflineEntity
+        {
+            this.CacheController.ControllerBehavior.AddType<T>();
+        }
+
+        public void Reinitialize()
+        {
+            try
+            {
+                foreach (Type knownType in this.CacheController.ControllerBehavior.KnownTypes)
+                {
+                    sqlite.DropType(knownType);
+                }
+                sqlite.DropAnchor(CacheController.ControllerBehavior.ScopeName);
             }
             catch (Exception ex)
             {

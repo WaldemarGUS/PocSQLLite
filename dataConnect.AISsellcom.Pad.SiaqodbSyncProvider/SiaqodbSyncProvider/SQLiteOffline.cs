@@ -295,6 +295,13 @@ namespace SiaqodbSyncProvider
         {
             Delete(obj).Wait();
         }
+
+        public void DropType(Type type)
+        {
+            // In SQLite, we don't need to explicitly drop types
+            // as they are managed through table creation/deletion
+            // This is a no-op to maintain compatibility with Siaqodb interface
+        }
     }
 
     public interface ISqoDataObject
