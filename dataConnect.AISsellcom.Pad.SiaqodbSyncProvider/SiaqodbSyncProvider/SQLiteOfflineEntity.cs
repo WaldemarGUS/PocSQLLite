@@ -2,6 +2,7 @@ using Microsoft.Synchronization.ClientServices;
 using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Reflection;
+using SQLite;
 
 namespace SiaqodbSyncProvider
 {
@@ -10,10 +11,19 @@ namespace SiaqodbSyncProvider
         private bool isTombstone;
         private bool isDirty;
         private string _etag;
-        private string _idMeta;
-        private int _idMetaHash;
-        private OfflineEntityMetadata _entityMetadata;
+        
+        [Column("id_meta")]
+        [JsonProperty]
+        internal string IdMeta { get; set; }
+        
+        [Column("id_meta_hash")]
+        [Indexed]
+        internal int IdMetaHash { get; set; }
+        
+        [Ignore]
+        private OfflineEntityMetadata _entityMetadata { get; set; }
 
+        [Column("oid")]
         public int OID { get; set; }
 
         [JsonProperty]
@@ -38,7 +48,7 @@ namespace SiaqodbSyncProvider
                 {
                     _entityMetadata = new OfflineEntityMetadata();
                     _entityMetadata.ETag = _etag;
-                    _entityMetadata.Id = _idMeta;
+                    _entityMetadata.Id = IdMeta;
                     _entityMetadata.IsTombstone = isTombstone;
                 }
                 return _entityMetadata;
@@ -47,12 +57,13 @@ namespace SiaqodbSyncProvider
             {
                 _entityMetadata = value;
                 _etag = _entityMetadata.ETag;
-                _idMeta = _entityMetadata.Id;
-                _idMetaHash = _idMeta?.GetHashCode() ?? 0;
+                IdMeta = _entityMetadata.Id;
+                IdMetaHash = IdMeta?.GetHashCode() ?? 0;
                 isTombstone = _entityMetadata.IsTombstone;
             }
         }
 
+        [Column("last_modified")]
         public DateTime LastModified { get; set; }
 
         public SQLiteOfflineEntity()

@@ -10,15 +10,20 @@ using System.Text;
 
 namespace SiaqodbSyncProvider.Utilities {
     internal class JSerializer
-  {
-    public static byte[] Serialize(object obj)
     {
-      return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj));
-    }
+        public static byte[] Serialize(object obj)
+        {
+            return Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(obj));
+        }
 
-    public static object Deserialize(Type type, byte[] objectBytes)
-    {
-      return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(objectBytes).TrimEnd(new char[1]), type);
+        public static object Deserialize(Type type, byte[] objectBytes)
+        {
+            return JsonConvert.DeserializeObject(Encoding.UTF8.GetString(objectBytes).TrimEnd(new char[1]), type);
+        }
+
+        public static object Deserialize(Type type, string jsonString)
+        {
+            return JsonConvert.DeserializeObject(jsonString.TrimEnd(new char[1]), type);
+        }
     }
-  }
 }

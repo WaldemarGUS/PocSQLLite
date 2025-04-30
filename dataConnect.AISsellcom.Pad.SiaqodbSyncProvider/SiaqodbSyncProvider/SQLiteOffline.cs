@@ -91,7 +91,7 @@ namespace SiaqodbSyncProvider
                 EntityOID = oid,
                 EntityType = obj.GetType().Name,
                 DirtyOp = DirtyOperation.Deleted,
-                TombstoneObj = JSerializer.Serialize(obj)
+                TombstoneObj = System.Text.Encoding.UTF8.GetString(JSerializer.Serialize(obj))
             };
 
             obj.IsDirty = true;
