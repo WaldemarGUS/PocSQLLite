@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Synchronization.Services;
+using Microsoft.Synchronization.ClientServices;
+using SiaqodbSyncProvider.Utilities;
 
 namespace SiaqodbSyncProvider
 {
@@ -11,20 +13,115 @@ namespace SiaqodbSyncProvider
     {
         private readonly SQLiteAsyncConnection _connection;
         private readonly string _dbPath;
+        private readonly object _locker = new object();
+        private SQLiteOfflineSyncProvider _provider;
 
-        public SQLiteOffline(string dbPath)
+        public event EventHandler<SyncProgressEventArgs> SyncProgress;
+        public event EventHandler<SyncCompletedEventArgs> SyncCompleted;
+
+        public SQLiteOffline(string dbPath, Uri uri)
         {
             _dbPath = dbPath;
             _connection = new SQLiteAsyncConnection(dbPath);
+            _provider = new SQLiteOfflineSyncProvider(this, uri);
             InitializeDatabase();
+        }
+
+        public SQLiteOffline(string dbPath, Uri uri, string scopeName)
+        {
+            _dbPath = dbPath;
+            _connection = new SQLiteAsyncConnection(dbPath);
+            _provider = new SQLiteOfflineSyncProvider(this, uri, scopeName);
+            InitializeDatabase();
+        }
+
+        public SQLiteOffline(string dbPath, SQLiteOfflineSyncProvider provider)
+        {
+            _dbPath = dbPath;
+            _connection = new SQLiteAsyncConnection(dbPath);
+            _provider = provider;
+            InitializeDatabase();
+        }
+
+        public SQLiteOfflineSyncProvider SyncProvider
+        {
+            get => _provider;
+            set => _provider = value;
         }
 
         private async void InitializeDatabase()
         {
-            // Create tables for sync metadata
             await _connection.CreateTableAsync<SyncMetadata>();
             await _connection.CreateTableAsync<DirtyEntity>();
             await _connection.CreateTableAsync<Hp>();
+        }
+
+        private async Task CreateDirtyEntity(object obj, DirtyOperation dop)
+        {
+            var dirtyEntity = new DirtyEntity
+            {
+                EntityOID = GetOID(obj),
+                DirtyOp = dop,
+                EntityType = ReflectionHelper.GetDiscoveringTypeName(obj.GetType())
+            };
+            await _connection.InsertOrReplaceAsync(dirtyEntity);
+        }
+
+        private async Task CreateTombstoneDirtyEntity(SQLiteOfflineEntity obj, int oid)
+        {
+            var thisEntityOperations = await _connection.Table<DirtyEntity>()
+                .Where(x => x.EntityType == ReflectionHelper.GetDiscoveringTypeName(obj.GetType()) && x.EntityOID == oid)
+                .ToListAsync();
+
+            bool noDeleteTracking = thisEntityOperations.Any(o => o.DirtyOp == DirtyOperation.Inserted);
+
+            foreach (var item in thisEntityOperations)
+            {
+                await _connection.DeleteAsync(item);
+            }
+
+            if (noDeleteTracking)
+            {
+                return;
+            }
+
+            var dirtyEntity = new DirtyEntity
+            {
+                EntityOID = oid,
+                EntityType = ReflectionHelper.GetDiscoveringTypeName(obj.GetType()),
+                DirtyOp = DirtyOperation.Deleted,
+                TombstoneObj = JSerializer.Serialize(obj)
+            };
+
+            obj.IsDirty = true;
+            obj.IsTombstone = true;
+            await _connection.InsertOrReplaceAsync(dirtyEntity);
+        }
+
+        public async Task StoreObject(object obj)
+        {
+            lock (_locker)
+            {
+                if (!(obj is SQLiteOfflineEntity entity))
+                    throw new Exception("Entity should be SQLiteOfflineEntity type");
+
+                entity.IsDirty = true;
+                var dop = entity.OID == 0 ? DirtyOperation.Inserted : DirtyOperation.Updated;
+                _connection.InsertOrReplaceAsync(obj).Wait();
+                CreateDirtyEntity(obj, dop).Wait();
+            }
+        }
+
+        public async Task Delete(object obj)
+        {
+            lock (_locker)
+            {
+                if (!(obj is SQLiteOfflineEntity entity))
+                    throw new Exception("Entity should be SQLiteOfflineEntity type");
+
+                CreateTombstoneDirtyEntity(entity, entity.OID).Wait();
+                _connection.DeleteAsync(obj).Wait();
+            }
         }
 
         public async Task<T> LoadObjectByOID<T>(System.Guid id) where T : new()
@@ -37,56 +134,54 @@ namespace SiaqodbSyncProvider
             return await _connection.Table<T>().ToListAsync();
         }
 
-        public async Task StoreObject<T>(T obj) where T : new()
+        public async Task<CacheRefreshStatistics> Synchronize()
         {
-            await _connection.InsertOrReplaceAsync(obj);
+            if (_provider == null)
+                throw new Exception("Provider cannot be null");
+
+            _provider.SyncProgress -= Provider_SyncProgress;
+            _provider.SyncProgress += Provider_SyncProgress;
+
+            var stat = await _provider.CacheController.SynchronizeAsync();
+            var args = new SyncCompletedEventArgs(stat.Cancelled, stat.Error, stat);
+            OnSyncCompleted(args);
+            return stat;
         }
 
-        public async Task DeleteObject<T>(T obj) where T : new()
+        private void Provider_SyncProgress(object sender, SyncProgressEventArgs e)
         {
-            if (obj is Hp hp)
-            {
-                await _connection.DeleteAsync<Hp>(hp.TId);
-            }
-            else
-            {
-                await _connection.DeleteAsync(obj);
-            }
+            OnSyncProgress(e);
         }
 
-        public async Task BeginTransaction()
+        public void AddTypeForSync<T>() where T : IOfflineEntity
         {
-            await _connection.RunInTransactionAsync(conn => { });
+            if (_provider == null)
+                throw new Exception("Provider cannot be null");
+            _provider.CacheController.ControllerBehavior.AddType<T>();
         }
 
-        public async Task CommitTransaction()
+        public void AddScopeParameters(string key, string value)
         {
-            // SQLite handles commit automatically in RunInTransactionAsync
+            if (_provider == null)
+                throw new Exception("Provider cannot be null");
+            _provider.CacheController.ControllerBehavior.AddScopeParameters(key, value);
         }
 
-        public async Task RollbackTransaction()
+        protected void OnSyncProgress(SyncProgressEventArgs args)
         {
-            // SQLite handles rollback automatically in RunInTransactionAsync
+            SyncProgress?.Invoke(this, args);
         }
 
-        public void Flush()
+        protected void OnSyncCompleted(SyncCompletedEventArgs args)
         {
-            // SQLite handles this automatically
+            SyncCompleted?.Invoke(this, args);
         }
 
-        public async Task StoreDirtyEntity(DirtyEntity entity)
+        private int GetOID(object obj)
         {
-            await _connection.InsertOrReplaceAsync(entity);
-        }
-
-        public async Task<List<DirtyEntity>> LoadAllDirtyEntities()
-        {
-            return await _connection.Table<DirtyEntity>().ToListAsync();
-        }
-
-        public async Task DeleteDirtyEntity(DirtyEntity entity)
-        {
-            await _connection.DeleteAsync(entity);
+            if (obj is ISqoDataObject sqoObj)
+                return sqoObj.OID;
+            return 0;
         }
     }
 

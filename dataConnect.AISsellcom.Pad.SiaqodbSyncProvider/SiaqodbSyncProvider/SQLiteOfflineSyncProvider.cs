@@ -43,7 +43,6 @@ namespace SiaqodbSyncProvider
 
         public override void EndSession()
         {
-            this.sqlite.Flush();
             this.OnSyncProgress(new SyncProgressEventArgs("Synchronization finished."));
         }
 
@@ -80,13 +79,13 @@ namespace SiaqodbSyncProvider
         private async Task<KeyValuePair<ICollection<SQLiteOfflineEntity>, ICollection<DirtyEntity>>> GetChanges()
         {
             List<SQLiteOfflineEntity> entities = new List<SQLiteOfflineEntity>();
-            var dirtyEntities = await sqlite.LoadAllDirtyEntities();
+            var dirtyEntities = await sqlite.LoadAll<DirtyEntity>();
 
             foreach (var entity in dirtyEntities)
             {
                 try
                 {
-                    var obj = await sqlite.LoadObjectByOID<SQLiteOfflineEntity>(entity.EntityOID);
+                    var obj = await sqlite.LoadObjectByOID<SQLiteOfflineEntity>(Guid.NewGuid());
                     if (obj != null)
                     {
                         entities.Add(obj);
@@ -112,7 +111,6 @@ namespace SiaqodbSyncProvider
             if (changeSet == null)
                 return;
 
-            await sqlite.BeginTransaction();
             try
             {
                 foreach (var entity in changeSet.Data)
@@ -122,12 +120,10 @@ namespace SiaqodbSyncProvider
                         await sqlite.StoreObject(sqliteEntity);
                     }
                 }
-                await sqlite.CommitTransaction();
             }
-            catch
+            catch (Exception ex)
             {
-                await sqlite.RollbackTransaction();
-                throw;
+                throw ex;
             }
         }
 
@@ -140,7 +136,6 @@ namespace SiaqodbSyncProvider
 
             this.OnSyncProgress(new SyncProgressEventArgs("Upload finished, marking local entities as uploaded..."));
             
-            await sqlite.BeginTransaction();
             try
             {
                 if (response.UpdatedItems != null && response.UpdatedItems.Count > 0)
@@ -174,13 +169,10 @@ namespace SiaqodbSyncProvider
                         }
                     }
                 }
-
-                await sqlite.CommitTransaction();
             }
-            catch
+            catch (Exception ex)
             {
-                await sqlite.RollbackTransaction();
-                throw;
+                throw ex;
             }
         }
 
