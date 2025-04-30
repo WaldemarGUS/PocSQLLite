@@ -46,10 +46,7 @@ namespace SiaqodbSyncProvider {
         private void CreateDirtyEntity(object obj, DirtyOperation dop, ITransaction transaction)
         {
             DirtyEntity dirtyEntity = new DirtyEntity();
-            SiaqodbOfflineEntity entity = obj as SiaqodbOfflineEntity;
-            if (entity == null)
-                throw new Exception("Entity should be SiaqodbOfflineEntity type");
-            dirtyEntity.EntityOID = System.Guid.Parse(entity._idMeta);
+            dirtyEntity.EntityOID = this.GetOID(obj);
             dirtyEntity.DirtyOp = dop;
             dirtyEntity.EntityType = ReflectionHelper.GetDiscoveringTypeName(obj.GetType());
             if (transaction != null)
@@ -60,7 +57,7 @@ namespace SiaqodbSyncProvider {
 
         private void CreateTombstoneDirtyEntity(
           SiaqodbOfflineEntity obj,
-          System.Guid oid,
+          int oid,
           ITransaction transaction)
         {
             bool noDeleteTracking = false;
@@ -108,7 +105,7 @@ namespace SiaqodbSyncProvider {
                 if (siaqodbOfflineEntity == null)
                     throw new Exception("Entity should be SiaqodbOfflineEntity type");
                 siaqodbOfflineEntity.IsDirty = true;
-                DirtyOperation dop = string.IsNullOrEmpty(siaqodbOfflineEntity._idMeta) ? DirtyOperation.Inserted : DirtyOperation.Updated;
+                DirtyOperation dop = siaqodbOfflineEntity.OID == 0 ? DirtyOperation.Inserted : DirtyOperation.Updated;
                 base.StoreObject(obj);
                 this.CreateDirtyEntity(obj, dop, (ITransaction)null);
             }
@@ -122,7 +119,7 @@ namespace SiaqodbSyncProvider {
                 if (siaqodbOfflineEntity == null)
                     throw new Exception("Entity should be SiaqodbOfflineEntity type");
                 siaqodbOfflineEntity.IsDirty = true;
-                DirtyOperation dop = string.IsNullOrEmpty(siaqodbOfflineEntity._idMeta) ? DirtyOperation.Inserted : DirtyOperation.Updated;
+                DirtyOperation dop = siaqodbOfflineEntity.OID == 0 ? DirtyOperation.Inserted : DirtyOperation.Updated;
                 base.StoreObject(obj, transaction);
                 this.CreateDirtyEntity(obj, dop, transaction);
             }
@@ -145,7 +142,7 @@ namespace SiaqodbSyncProvider {
                 SiaqodbOfflineEntity siaqodbOfflineEntity = obj as SiaqodbOfflineEntity;
                 if (siaqodbOfflineEntity == null)
                     throw new Exception("Entity should be SqoOfflineEntity type");
-                this.CreateTombstoneDirtyEntity(siaqodbOfflineEntity, System.Guid.Parse(siaqodbOfflineEntity._idMeta), (ITransaction)null);
+                this.CreateTombstoneDirtyEntity(siaqodbOfflineEntity, siaqodbOfflineEntity.OID, (ITransaction)null);
                 base.Delete(obj);
             }
         }
@@ -157,7 +154,7 @@ namespace SiaqodbSyncProvider {
                 SiaqodbOfflineEntity siaqodbOfflineEntity = obj as SiaqodbOfflineEntity;
                 if (siaqodbOfflineEntity == null)
                     throw new Exception("Entity should be SqoOfflineEntity type");
-                this.CreateTombstoneDirtyEntity(siaqodbOfflineEntity, System.Guid.Parse(siaqodbOfflineEntity._idMeta), transaction);
+                this.CreateTombstoneDirtyEntity(siaqodbOfflineEntity, siaqodbOfflineEntity.OID, transaction);
                 base.Delete(obj, transaction);
             }
         }
