@@ -68,9 +68,11 @@ namespace SiaqodbSyncProvider
 
         private async Task CreateTombstoneDirtyEntity(SQLiteOfflineEntity obj, int oid)
         {
-            var thisEntityOperations = await _connection.Table<DirtyEntity>()
-                .Where(x => x.EntityType == ReflectionHelper.GetDiscoveringTypeName(obj.GetType()) && x.EntityOID == oid)
-                .ToListAsync();
+            // Get all dirty entities for this object
+            var allDirtyEntities = await _connection.Table<DirtyEntity>().ToListAsync();
+            var thisEntityOperations = allDirtyEntities
+                .Where(x => x.EntityType == obj.GetType().Name && x.EntityOID == oid)
+                .ToList();
 
             bool noDeleteTracking = thisEntityOperations.Any(o => o.DirtyOp == DirtyOperation.Inserted);
 
@@ -87,7 +89,7 @@ namespace SiaqodbSyncProvider
             var dirtyEntity = new DirtyEntity
             {
                 EntityOID = oid,
-                EntityType = ReflectionHelper.GetDiscoveringTypeName(obj.GetType()),
+                EntityType = obj.GetType().Name,
                 DirtyOp = DirtyOperation.Deleted,
                 TombstoneObj = JSerializer.Serialize(obj)
             };
@@ -99,28 +101,23 @@ namespace SiaqodbSyncProvider
 
         public async Task StoreObject(object obj)
         {
-            lock (_locker)
-            {
-                if (!(obj is SQLiteOfflineEntity entity))
-                    throw new Exception("Entity should be SQLiteOfflineEntity type");
+            if (!(obj is SQLiteOfflineEntity entity))
+                throw new Exception("Entity should be SQLiteOfflineEntity type");
 
-                entity.IsDirty = true;
-                var dop = entity.OID == 0 ? DirtyOperation.Inserted : DirtyOperation.Updated;
-                _connection.InsertOrReplaceAsync(obj).Wait();
-                CreateDirtyEntity(obj, dop).Wait();
-            }
+            entity.IsDirty = true;
+            var dop = entity.OID == 0 ? DirtyOperation.Inserted : DirtyOperation.Updated;
+            
+            await _connection.InsertOrReplaceAsync(obj);
+            await CreateDirtyEntity(obj, dop);
         }
 
         public async Task Delete(object obj)
         {
-            lock (_locker)
-            {
-                if (!(obj is SQLiteOfflineEntity entity))
-                    throw new Exception("Entity should be SQLiteOfflineEntity type");
+            if (!(obj is SQLiteOfflineEntity entity))
+                throw new Exception("Entity should be SQLiteOfflineEntity type");
 
-                CreateTombstoneDirtyEntity(entity, entity.OID).Wait();
-                _connection.DeleteAsync(obj).Wait();
-            }
+            await CreateTombstoneDirtyEntity(entity, entity.OID);
+            await _connection.DeleteAsync(obj);
         }
 
         public async Task<T> LoadObjectByOID<T>(System.Guid id) where T : new()
