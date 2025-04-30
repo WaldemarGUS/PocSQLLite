@@ -17,20 +17,19 @@ namespace PocSQLLite
             _syncProvider = new SQLiteOfflineSyncProvider(_sqlite, new Uri("http://localhost"));
         }
 
-        public async Task<List<SiaqodbSyncProvider.Customer>> getcustomers()
+        public async Task<List<Hp>> GetHps()
         {
-            return await _sqlite.LoadAll<SiaqodbSyncProvider.Customer>();
+            return await _sqlite.LoadAll<Hp>();
         }
 
-        public async Task<SiaqodbSyncProvider.Customer> GetById(int id)
+        public async Task<Hp> GetById(System.Guid id)
         {
-            return await _sqlite.LoadObjectByOID<SiaqodbSyncProvider.Customer>(id);
+            return await _sqlite.LoadObjectByOID<Hp>(id);
         }
 
-        public async Task Create(SiaqodbSyncProvider.Customer customer)
+        public async Task Create(Hp hp)
         {
-            customer.Id = 0; // Ensure new record
-            await _sqlite.StoreObject(customer);
+            await _sqlite.StoreObject(hp);
             await _syncProvider.BeginSession();
             try
             {
@@ -42,13 +41,9 @@ namespace PocSQLLite
             }
         }
 
-        public async Task Update(SiaqodbSyncProvider.Customer customer)
+        public async Task Update(Hp hp)
         {
-            if (customer.Id == 0)
-            {
-                throw new ArgumentException("Cannot update a customer with Id 0");
-            }
-            await _sqlite.StoreObject(customer);
+            await _sqlite.StoreObject(hp);
             await _syncProvider.BeginSession();
             try
             {
@@ -60,9 +55,9 @@ namespace PocSQLLite
             }
         }
 
-        public async Task Delete(SiaqodbSyncProvider.Customer customer)
+        public async Task Delete(Hp hp)
         {
-            await _sqlite.DeleteObject(customer);
+            await _sqlite.DeleteObject(hp);
             await _syncProvider.BeginSession();
             try
             {

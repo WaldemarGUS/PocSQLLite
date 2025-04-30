@@ -10,7 +10,7 @@ namespace SiaqodbSyncProvider
         public System.Guid TId { get; set; }
 
         [Column("aisstatus")]
-        public short AISStatus { get; set; }
+        public int AISStatus { get; set; }
 
         [Column("hpnr")]
         public string HpNr { get; set; }

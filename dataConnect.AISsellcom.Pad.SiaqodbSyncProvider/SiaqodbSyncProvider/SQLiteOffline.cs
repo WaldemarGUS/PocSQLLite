@@ -24,12 +24,12 @@ namespace SiaqodbSyncProvider
             // Create tables for sync metadata
             await _connection.CreateTableAsync<SyncMetadata>();
             await _connection.CreateTableAsync<DirtyEntity>();
-            await _connection.CreateTableAsync<Customer>();
+            await _connection.CreateTableAsync<Hp>();
         }
 
-        public async Task<T> LoadObjectByOID<T>(int id) where T : new()
+        public async Task<T> LoadObjectByOID<T>(System.Guid id) where T : new()
         {
-            return await _connection.Table<T>().Where(x => ((Customer)(object)x).Id == id).FirstOrDefaultAsync();
+            return await _connection.Table<T>().Where(x => ((Hp)(object)x).TId == id).FirstOrDefaultAsync();
         }
 
         public async Task<List<T>> LoadAll<T>() where T : new()
@@ -39,28 +39,14 @@ namespace SiaqodbSyncProvider
 
         public async Task StoreObject<T>(T obj) where T : new()
         {
-            if (obj is Customer customer)
-            {
-                if (customer.Id == 0)
-                {
-                    await _connection.InsertAsync(customer);
-                }
-                else
-                {
-                    await _connection.UpdateAsync(customer);
-                }
-            }
-            else
-            {
-                await _connection.InsertOrReplaceAsync(obj);
-            }
+            await _connection.InsertOrReplaceAsync(obj);
         }
 
         public async Task DeleteObject<T>(T obj) where T : new()
         {
-            if (obj is Customer customer)
+            if (obj is Hp hp)
             {
-                await _connection.DeleteAsync<Customer>(customer.Id);
+                await _connection.DeleteAsync<Hp>(hp.TId);
             }
             else
             {

@@ -92,9 +92,9 @@ namespace SiaqodbSyncProvider {
             foreach (IGrouping<string, DirtyEntity> grouping in (IEnumerable<IGrouping<string, DirtyEntity>>)lookup) {
                 IEnumerable<DirtyEntity> source2 = lookup[grouping.Key];
                 Type byDiscoveringName = ReflectionHelper.GetTypeByDiscoveringName(source2.First<DirtyEntity>().EntityType);
-                Dictionary<int, Tuple<object, DirtyEntity>> dictionary1 = new Dictionary<int, Tuple<object, DirtyEntity>>();
-                Dictionary<int, Tuple<object, DirtyEntity>> dictionary2 = new Dictionary<int, Tuple<object, DirtyEntity>>();
-                Dictionary<int, Tuple<object, DirtyEntity>> dictionary3 = new Dictionary<int, Tuple<object, DirtyEntity>>();
+                Dictionary<System.Guid, Tuple<object, DirtyEntity>> dictionary1 = new Dictionary<System.Guid, Tuple<object, DirtyEntity>>();
+                Dictionary<System.Guid, Tuple<object, DirtyEntity>> dictionary2 = new Dictionary<System.Guid, Tuple<object, DirtyEntity>>();
+                Dictionary<System.Guid, Tuple<object, DirtyEntity>> dictionary3 = new Dictionary<System.Guid, Tuple<object, DirtyEntity>>();
                 if (this.CacheController.ControllerBehavior.KnownTypes.Contains(byDiscoveringName)) {
                     foreach (DirtyEntity dirtyEntity in source2) {
                         try {
@@ -107,7 +107,7 @@ namespace SiaqodbSyncProvider {
                                     dictionary2.Remove(dirtyEntity.EntityOID);
                             } else if (dictionary3.ContainsKey(dirtyEntity.EntityOID) || dictionary1.ContainsKey(dirtyEntity.EntityOID) || dictionary2.ContainsKey(dirtyEntity.EntityOID))
                                 continue;
-                            object obj = dirtyEntity.DirtyOp != DirtyOperation.Deleted ? _bs._lobjby((Siaqodb)this.siaqodb, byDiscoveringName, dirtyEntity.EntityOID) : (object)(SiaqodbOfflineEntity)JSerializer.Deserialize(byDiscoveringName, dirtyEntity.TombstoneObj);
+                            object obj = dirtyEntity.DirtyOp != DirtyOperation.Deleted ? _bs._lobjby((Siaqodb)this.siaqodb, byDiscoveringName, dirtyEntity.EntityOID.GetHashCode()) : (object)(SiaqodbOfflineEntity)JSerializer.Deserialize(byDiscoveringName, dirtyEntity.TombstoneObj);
                             if (dirtyEntity.DirtyOp == DirtyOperation.Inserted)
                                 dictionary1.Add(dirtyEntity.EntityOID, new Tuple<object, DirtyEntity>(obj, dirtyEntity));
                             else if (dirtyEntity.DirtyOp == DirtyOperation.Updated)
@@ -116,7 +116,6 @@ namespace SiaqodbSyncProvider {
                                 dictionary3.Add(dirtyEntity.EntityOID, new Tuple<object, DirtyEntity>(obj, dirtyEntity));
                             siaqodbOfflineEntityList.Add((SiaqodbOfflineEntity)obj);
                         } catch (Exception ex) {
-
                             throw ex;
                         }
                     }

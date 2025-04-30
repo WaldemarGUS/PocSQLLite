@@ -18,7 +18,7 @@ namespace SiaqodbSyncProvider {
         [SQLite.MaxLength(200)]
         public string EntityType { get; set; }
         
-        public int EntityOID { get; set; }
+        public System.Guid EntityOID { get; set; }
         
         public DirtyOperation DirtyOp { get; set; }
         

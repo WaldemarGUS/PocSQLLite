@@ -5,59 +5,65 @@ namespace PocSQLLite
     public partial class MainPage : ContentPage
     {
         private readonly LocalDBService _dbService;
-        private int _editCustomerId;
+        private System.Guid _editHpId;
 
         public MainPage(LocalDBService dBService)
         {
             InitializeComponent();
             _dbService = dBService;
-            Task.Run(async () => listView.ItemsSource = await _dbService.getcustomers());
+            Task.Run(async () => listView.ItemsSource = await _dbService.GetHps());
         }
 
         private async void saveButton_Clicked(object sender, EventArgs e)
         {
-            if (_editCustomerId == 0){
-                // Add Customer
-                await _dbService.Create(new SiaqodbSyncProvider.Customer{
+            if (_editHpId == System.Guid.Empty)
+            {
+                // Add Hp
+                await _dbService.Create(new Hp
+                {
+                    TId = System.Guid.NewGuid(),
                     Name = nameEntryField.Text,
-                    Email = emailEntryField.Text,
-                    Mobile = mobileEntryField.Text
+                    HpNr = hpnrEntryField.Text,
+                    AISStatus = short.Parse(aisstatusEntryField.Text)
                 });
             }
-            else{
-                // Update Customer
-                await _dbService.Update(new SiaqodbSyncProvider.Customer{
-                    Id = _editCustomerId,
+            else
+            {
+                // Update Hp
+                await _dbService.Update(new Hp
+                {
+                    TId = _editHpId,
                     Name = nameEntryField.Text,
-                    Email = emailEntryField.Text,
-                    Mobile = mobileEntryField.Text
+                    HpNr = hpnrEntryField.Text,
+                    AISStatus = short.Parse(aisstatusEntryField.Text)
                 });
 
-                _editCustomerId = 0;
+                _editHpId = System.Guid.Empty;
             }
 
             nameEntryField.Text = string.Empty;
-            emailEntryField.Text = string.Empty;
-            mobileEntryField.Text = string.Empty;
+            hpnrEntryField.Text = string.Empty;
+            aisstatusEntryField.Text = string.Empty;
 
-            listView.ItemsSource = await _dbService.getcustomers();
+            listView.ItemsSource = await _dbService.GetHps();
         }
 
         private async void listView_ItemTapped(object sender, ItemTappedEventArgs e)
         {
-            var customer = (SiaqodbSyncProvider.Customer)e.Item;
+            var hp = (Hp)e.Item;
             var action = await DisplayActionSheet("Select Action", "Cancel", null, "Edit", "Delete");
 
-            switch (action){
+            switch (action)
+            {
                 case "Edit":
-                    _editCustomerId = customer.Id;
-                    nameEntryField.Text = customer.Name;
-                    emailEntryField.Text = customer.Email;
-                    mobileEntryField.Text = customer.Mobile;
+                    _editHpId = hp.TId;
+                    nameEntryField.Text = hp.Name;
+                    hpnrEntryField.Text = hp.HpNr;
+                    aisstatusEntryField.Text = hp.AISStatus.ToString();
                     break;
                 case "Delete":
-                    await _dbService.Delete(customer);
-                    listView.ItemsSource = await _dbService.getcustomers();
+                    await _dbService.Delete(hp);
+                    listView.ItemsSource = await _dbService.GetHps();
                     break;
             }
         }
