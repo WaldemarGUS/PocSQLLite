@@ -17,13 +17,13 @@ namespace SiaqodbSyncProvider
         public int OID { get; set; }
 
         [JsonProperty]
-        public bool IsTombstone
+        public virtual bool IsTombstone
         {
             get => isTombstone;
             set => isTombstone = value;
         }
 
-        public bool IsDirty
+        public virtual bool IsDirty
         {
             get => isDirty;
             set => isDirty = value;

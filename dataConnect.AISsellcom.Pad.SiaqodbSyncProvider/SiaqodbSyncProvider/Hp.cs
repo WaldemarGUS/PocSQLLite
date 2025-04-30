@@ -21,6 +21,12 @@ namespace SiaqodbSyncProvider
 
         [Ignore]
         public override OfflineEntityMetadata ServiceMetadata { get; set; }
+
+        [Ignore]
+        public override bool IsTombstone { get; set; }
+
+        [Ignore]
+        public override bool IsDirty { get; set; }
     }
 } 
 
