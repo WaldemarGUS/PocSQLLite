@@ -3,14 +3,14 @@ using SQLite;
 namespace SiaqodbSyncProvider
 {
     [Table("hp")]
-    public class Hp
+    public class Hp : SQLiteOfflineEntity
     {
         [PrimaryKey]
         [Column("tid")]
         public System.Guid TId { get; set; }
 
         [Column("aisstatus")]
-        public int AISStatus { get; set; }
+        public short AISStatus { get; set; }
 
         [Column("hpnr")]
         public string HpNr { get; set; }
